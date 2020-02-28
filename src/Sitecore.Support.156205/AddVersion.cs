@@ -59,6 +59,10 @@ namespace Sitecore.Support.Shell.Framework.Commands
             }
             if (!items.Locking.CanLock() && !items.Locking.HasLock())
             {
+                if (items.IsFallback && (items.Version.Number == 1))
+                {
+                    return CommandState.Enabled;
+                }
                 return CommandState.Disabled;
             }
             if (!items.Access.CanWriteLanguage())
@@ -81,7 +85,12 @@ namespace Sitecore.Support.Shell.Framework.Commands
 
             Item item = Context.ContentDatabase.Items[id, Language.Parse(language), Sitecore.Data.Version.Parse(version)];
 
-            if ((Context.IsAdministrator || (item.Access.CanWrite() && (item.Locking.CanLock() || item.Locking.HasLock()))))
+            bool isAdministrator = Context.IsAdministrator;
+            item.Access.CanWrite();
+            item.Locking.CanLock();
+            item.Locking.HasLock();
+
+            if ((Context.IsAdministrator || (item.Access.CanWrite() && (item.Locking.CanLock() || item.Locking.HasLock()))) || (item.IsFallback && (item.Version.Number == 1)))
             {
 
                 #endregion
